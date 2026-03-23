@@ -12,7 +12,9 @@ Install via [r2modman](https://thunderstore.io/c/hades-ii/) or manually place in
 
 ## Configuration
 
-TODO: Describe configuration options (if any).
+This mod can be configured in-game. 
+- **With H2 Modpack Core**: Press the designated hotkey (default: `F10`) to open the unified Modpack UI and toggle this mod or adjust its settings.
+- **Standalone**: If you do not have the Core installed, this mod will provide its own standalone configuration menu in-game.
 
 ## Development
 
