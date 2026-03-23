@@ -17,5 +17,5 @@ TODO: Describe configuration options (if any).
 ## Development
 
 1. Clone this repo
-2. Run `init.sh` (or `init.ps1`) to configure git hooks and branch protection
-3. Run `R2M/win.bat` (Windows) or `R2M/lin.sh` (Linux) to symlink into your r2modman profile
+2. Run `Setup/init_repo.bat` (Windows) or `Setup/init_repo.sh` (Linux) to configure git hooks and branch protection
+3. Run `Setup/deploy_local.bat` (Windows, as admin) or `Setup/deploy_local.sh` (Linux) to copy assets, generate manifest, and symlink into your r2modman profile
