@@ -16,3 +16,4 @@ read_globals = {
     "import",
     "SetupRunData",
 }
+exclude_files = { "src/main.lua", "src/main_special.lua" }
