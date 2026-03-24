@@ -29,22 +29,26 @@ local backup, revert = lib.createBackupSystem()
 -- =============================================================================
 
 public.definition = {
-    id           = "",       -- Unique key
+    id           = "",       -- Unique key. Never rename after release — it is a hash key.
     name         = "",       -- Display name
-    category     = "",       -- "BugFixes" | "RunModifiers" | "QoLSettings" | "More"
-    group        = "",       -- UI group header
+    category     = "",       -- "Bug Fixes" | "Run Modifiers" | "QoL" (new string = new tab)
+    group        = "",       -- UI group header within the category tab
     tooltip      = "",       -- Hover text
-    default      = true,     -- Default enabled state
+    default      = true,     -- Default enabled state (true = on by default)
     dataMutation = true,     -- true if apply() modifies game tables, false for hook-only mods
+    modpackModule = true,    -- MUST BE TRUE for Core to discover this module
 
     -- Optional: inline options rendered below the checkbox in Core's UI.
     -- Core handles staging, hashing, and UI — module just reads config values in hooks.
-    -- Bits auto-calculated from #values if omitted.
     --
     -- Supported types:
     --   "checkbox" — toggle, stores true/false
     --   "dropdown" — combo box, stores selected string value
     --   "radio"    — radio buttons, stores selected string value
+    --
+    -- IMPORTANT: configKey must be a flat string — never a table.
+    -- Table-path keys are only valid in stateSchema (special modules).
+    -- The configKey must also exist in config.lua with the correct default value.
     --
     -- options = {
     --     { type = "checkbox", configKey = "Strict", label = "Strict Mode", default = false },

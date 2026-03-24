@@ -51,6 +51,7 @@ public.definition = {
     default      = false,    -- Default enabled state
     special      = true,     -- Marks this as a special module
     dataMutation = false,    -- true if apply() modifies game tables
+    modpackModule = true,    -- MUST BE TRUE for Core to discover this module
 }
 
 -- =============================================================================
@@ -187,7 +188,7 @@ rom.gui.add_imgui(function()
     if mods['adamant-Modpack_Core'] then return end
     if not showWindow then return end
 
-    if rom.ImGui.Begin(public.definition.name, true) then
+    if rom.ImGui.Begin(public.definition.name .. "###" .. public.definition.id) then
         local val, chg = rom.ImGui.Checkbox("Enabled", config.Enabled)
         if chg then
             config.Enabled = val
