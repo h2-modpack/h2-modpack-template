@@ -29,14 +29,14 @@ local backup, revert = lib.createBackupSystem()
 -- =============================================================================
 
 public.definition = {
-    id           = "",       -- Unique key. Never rename after release — it is a hash key.
-    name         = "",       -- Display name
-    category     = "",       -- "Bug Fixes" | "Run Modifiers" | "QoL" (new string = new tab)
-    group        = "",       -- UI group header within the category tab
-    tooltip      = "",       -- Hover text
-    default      = true,     -- Default enabled state (true = on by default)
-    dataMutation = true,     -- true if apply() modifies game tables, false for hook-only mods
-    modpackModule = true,    -- MUST BE TRUE for Core to discover this module
+    id           = "",              -- Unique key. Never rename after release — it is a hash key.
+    name         = "",              -- Display name
+    category     = "",              -- "Bug Fixes" | "Run Modifiers" | "QoL" (new string = new tab)
+    group        = "",              -- UI group header within the category tab
+    tooltip      = "",              -- Hover text
+    default      = true,            -- Default enabled state (true = on by default)
+    dataMutation = true,            -- true if apply() modifies game tables, false for hook-only mods
+    modpack      = "h2-modpack",    -- The modpack this module belongs to.
 
     -- Optional: inline options rendered below the checkbox in Core's UI.
     -- Core handles staging, hashing, and UI — module just reads config values in hooks.
@@ -75,6 +75,9 @@ end
 local function registerHooks()
     -- modutil.mod.Path.Wrap("SomeGameFunction", function(baseFunc, ...)
     --     if not lib.isEnabled(config) then return baseFunc(...) end
+    --     -- Module-level tracing: gated on config.DebugMode.
+    --     -- Core's Dev tab controls this flag; standalone UI shows a checkbox for it.
+    --     -- lib.log("MyModId", config.DebugMode, "something happened")
     --     return baseFunc(...)
     -- end)
 end

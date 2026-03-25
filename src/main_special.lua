@@ -42,16 +42,16 @@ local backup, revert = lib.createBackupSystem()
 -- =============================================================================
 
 public.definition = {
-    id           = "",       -- Unique key, e.g. "FirstHammer"
-    name         = "",       -- Display name, e.g. "First Hammer Selection"
-    tabLabel     = "",       -- Sidebar tab label in Core UI, e.g. "Hammers"
-    category     = "",       -- For standalone grouping, e.g. "RunModifiers"
-    group        = "",       -- UI group header
-    tooltip      = "",       -- Hover text
-    default      = false,    -- Default enabled state
-    special      = true,     -- Marks this as a special module
-    dataMutation = false,    -- true if apply() modifies game tables
-    modpackModule = true,    -- MUST BE TRUE for Core to discover this module
+    id           = "",              -- Unique key, e.g. "FirstHammer"
+    name         = "",              -- Display name, e.g. "First Hammer Selection"
+    tabLabel     = "",              -- Sidebar tab label in Core UI, e.g. "Hammers"
+    category     = "",              -- For standalone grouping, e.g. "RunModifiers"
+    group        = "",              -- UI group header
+    tooltip      = "",              -- Hover text
+    default      = false,           -- Default enabled state
+    special      = true,            -- Marks this as a special module
+    dataMutation = false,           -- true if apply() modifies game tables
+    modpack      = "h2-modpack",    -- The modpack this module belongs to
 }
 
 -- =============================================================================
