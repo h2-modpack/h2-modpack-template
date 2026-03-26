@@ -5,7 +5,7 @@
 -- Fill in the sections marked FILL below.
 --
 -- Works standalone with its own ImGui toggle.
--- When adamant-Modpack_Core is installed, the core handles UI — standalone UI is skipped.
+-- When the coordinator is installed, the Framework handles UI — standalone UI is skipped.
 
 local mods = rom.mods
 mods['SGG_Modding-ENVY'].auto()
@@ -25,20 +25,28 @@ public.config = config
 local backup, revert = lib.createBackupSystem()
 
 -- =============================================================================
+-- FILL: Pack identity — replace these before use
+-- =============================================================================
+
+local PACK_ID     = error("FILL: set PACK_ID to your pack id, e.g. \"h2-modpack\"")
+local COORDINATOR = error("FILL: set COORDINATOR to your coordinator mod id, e.g. \"adamant-Modpack_Core\"")
+
+-- =============================================================================
 -- FILL: Module definition
 -- =============================================================================
 
 public.definition = {
-    id           = "",       -- Unique key
-    name         = "",       -- Display name
-    category     = "",       -- "BugFixes" | "RunModifiers" | "QoLSettings" | "More"
-    group        = "",       -- UI group header
-    tooltip      = "",       -- Hover text
-    default      = true,     -- Default enabled state
-    dataMutation = true,     -- true if apply() modifies game tables, false for hook-only mods
+    modpack      = PACK_ID, -- Opts this module into pack discovery
+    id           = "",      -- Unique key
+    name         = "",      -- Display name
+    category     = "",      -- Tab label in the UI, e.g. "Bug Fixes" | "Run Modifiers" | "QoL"
+    group        = "",      -- UI group header
+    tooltip      = "",      -- Hover text
+    default      = true,    -- Default enabled state
+    dataMutation = true,    -- true if apply() modifies game tables, false for hook-only mods
 
-    -- Optional: inline options rendered below the checkbox in Core's UI.
-    -- Core handles staging, hashing, and UI — module just reads config values in hooks.
+    -- Optional: inline options rendered below the checkbox in the Framework UI.
+    -- Framework handles staging, hashing, and UI — module just reads config values in hooks.
     -- Bits auto-calculated from #values if omitted.
     --
     -- Supported types:
@@ -89,13 +97,13 @@ modutil.once_loaded.game(function()
         import_as_fallback(rom.game)
         registerHooks()
         if lib.isEnabled(config) then apply() end
-        if public.definition.dataMutation and not mods['adamant-Modpack_Core'] then
+        if public.definition.dataMutation and not mods[COORDINATOR] then
             SetupRunData()
         end
     end)
 end)
 
--- Standalone UI — menu-bar toggle when Core is not installed
+-- Standalone UI — menu-bar toggle when coordinator is not installed
 local uiCallback = lib.standaloneUI(public.definition, config, apply, revert)
 ---@diagnostic disable-next-line: redundant-parameter
 rom.gui.add_to_menu_bar(uiCallback)
