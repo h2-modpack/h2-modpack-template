@@ -24,12 +24,7 @@ public.config = config
 
 local backup, revert = lib.createBackupSystem()
 
--- =============================================================================
--- FILL: Pack identity — replace these before use
--- =============================================================================
-
 local PACK_ID     = error("FILL: set PACK_ID to your pack id, e.g. \"h2-modpack\"")
-local COORDINATOR = error("FILL: set COORDINATOR to your coordinator mod id, e.g. \"adamant-Modpack_Core\"")
 
 -- =============================================================================
 -- FILL: Module definition
@@ -37,13 +32,13 @@ local COORDINATOR = error("FILL: set COORDINATOR to your coordinator mod id, e.g
 
 public.definition = {
     modpack      = PACK_ID, -- Opts this module into pack discovery
-    id           = "",      -- Unique key
-    name         = "",      -- Display name
-    category     = "",      -- Tab label in the UI, e.g. "Bug Fixes" | "Run Modifiers" | "QoL"
-    group        = "",      -- UI group header
-    tooltip      = "",      -- Hover text
-    default      = true,    -- Default enabled state
-    dataMutation = true,    -- true if apply() modifies game tables, false for hook-only mods
+    id           = "",           -- Unique key
+    name         = "",           -- Display name
+    category     = "",           -- Tab label in the UI
+    group        = "",           -- UI group header
+    tooltip      = "",           -- Hover text
+    default      = true,         -- Default enabled state
+    dataMutation = true,         -- true if apply() modifies game tables, false for hook-only mods
 
     -- Optional: inline options rendered below the checkbox in the Framework UI.
     -- Framework handles staging, hashing, and UI — module just reads config values in hooks.
@@ -82,9 +77,8 @@ end
 
 local function registerHooks()
     -- modutil.mod.Path.Wrap("SomeGameFunction", function(baseFunc, ...)
-    --     if not lib.isEnabled(config) then return baseFunc(...) end
+    --     if not lib.isEnabled(config, public.definition.modpack) then return baseFunc(...) end
     --     -- Module-level tracing: gated on config.DebugMode.
-    --     -- Core's Dev tab controls this flag; standalone UI shows a checkbox for it.
     --     -- lib.log("MyModId", config.DebugMode, "something happened")
     --     return baseFunc(...)
     -- end)
@@ -103,8 +97,8 @@ modutil.once_loaded.game(function()
     loader.load(function()
         import_as_fallback(rom.game)
         registerHooks()
-        if lib.isEnabled(config) then apply() end
-        if public.definition.dataMutation and not mods[COORDINATOR] then
+        if lib.isEnabled(config, public.definition.modpack) then apply() end
+        if public.definition.dataMutation and not lib.isCoordinated(public.definition.modpack) then
             SetupRunData()
         end
     end)

@@ -37,12 +37,7 @@ public.config = config
 
 local _, revert = lib.createBackupSystem()
 
--- =============================================================================
--- FILL: Pack identity — replace these before use
--- =============================================================================
-
 local PACK_ID     = error("FILL: set PACK_ID to your pack id, e.g. \"h2-modpack\"")
-local COORDINATOR = error("FILL: set COORDINATOR to your coordinator mod id, e.g. \"adamant-Modpack_Core\"")
 
 -- =============================================================================
 -- FILL: Module definition
@@ -54,11 +49,11 @@ public.definition = {
     name         = "",           -- Display name, e.g. "First Hammer Selection"
     tabLabel     = "",           -- Sidebar tab label in the UI, e.g. "Hammers"
     category     = "",           -- Category, e.g. "Bug Fixes" | "Run Modifiers" | "QoL"
-    group        = "",       -- UI group header
-    tooltip      = "",       -- Hover text
-    default      = false,    -- Default enabled state
-    special      = true,     -- Marks this as a special module
-    dataMutation = false,    -- true if apply() modifies game tables
+    group        = "",           -- UI group header, drives merged repo assignment
+    tooltip      = "",           -- Hover text
+    default      = false,        -- Default enabled state
+    special      = true,         -- Marks this as a special module
+    dataMutation = false,        -- true if apply() modifies game tables
 }
 
 -- =============================================================================
@@ -118,7 +113,7 @@ end
 
 local function registerHooks()
     -- modutil.mod.Path.Wrap("SomeGameFunction", function(baseFunc, ...)
-    --     if not lib.isEnabled(config) then return baseFunc(...) end
+    --     if not lib.isEnabled(config, public.definition.modpack) then return baseFunc(...) end
     --     return baseFunc(...)
     -- end)
 end
@@ -173,6 +168,7 @@ public.SnapshotStaging    = snapshotStaging
 public.SyncToConfig       = syncToConfig
 
 --- Draw the full tab content (Framework renders the enable checkbox above this).
+--luacheck: ignore 122
 function public.DrawTab(ui, onChanged, theme)
     local colors      = theme and theme.colors
     local headerColor = (colors and colors.info) or {1, 1, 1, 1}
@@ -182,6 +178,7 @@ function public.DrawTab(ui, onChanged, theme)
 end
 
 --- Draw quick-access content for the Quick Setup tab.
+--luacheck: ignore 122
 function public.DrawQuickContent(ui, onChanged, theme)
     local colors      = theme and theme.colors
     local fieldMedium = (theme and theme.FIELD_MEDIUM) or DEFAULT_FIELD_MEDIUM
@@ -198,7 +195,7 @@ modutil.once_loaded.game(function()
     loader.load(function()
         import_as_fallback(rom.game)
         registerHooks()
-        if lib.isEnabled(config) then apply() end
+        if lib.isEnabled(config, public.definition.modpack) then apply() end
     end)
 end)
 
@@ -214,7 +211,7 @@ end
 
 ---@diagnostic disable-next-line: redundant-parameter
 rom.gui.add_imgui(function()
-    if mods[COORDINATOR] then return end
+    if lib.isCoordinated(public.definition.modpack) then return end
     if not showWindow then return end
 
     if rom.ImGui.Begin(public.definition.name .. "###" .. public.definition.id) then
@@ -237,8 +234,8 @@ end)
 
 ---@diagnostic disable-next-line: redundant-parameter
 rom.gui.add_to_menu_bar(function()
-    if mods[COORDINATOR] then return end
-    if rom.ImGui.BeginMenu("adamant") then
+    if lib.isCoordinated(public.definition.modpack) then return end
+    if rom.ImGui.BeginMenu(public.definition.name) then
         if rom.ImGui.MenuItem(public.definition.name) then
             showWindow = not showWindow
         end
