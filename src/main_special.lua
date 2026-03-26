@@ -217,7 +217,7 @@ rom.gui.add_imgui(function()
     if mods[COORDINATOR] then return end
     if not showWindow then return end
 
-    if rom.ImGui.Begin(public.definition.name, true) then
+    if rom.ImGui.Begin(public.definition.name .. "###" .. public.definition.id) then
         local val, chg = rom.ImGui.Checkbox("Enabled", config.Enabled)
         if chg then
             config.Enabled = val

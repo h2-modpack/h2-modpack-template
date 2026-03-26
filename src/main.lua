@@ -54,6 +54,10 @@ public.definition = {
     --   "dropdown" — combo box, stores selected string value
     --   "radio"    — radio buttons, stores selected string value
     --
+    -- IMPORTANT: configKey must be a flat string — never a table.
+    -- Table-path keys are only valid in stateSchema (special modules).
+    -- The configKey must also exist in config.lua with the correct default value.
+    --
     -- options = {
     --     { type = "checkbox", configKey = "Strict", label = "Strict Mode", default = false },
     --     { type = "dropdown", configKey = "Mode",   label = "Mode",
@@ -79,6 +83,9 @@ end
 local function registerHooks()
     -- modutil.mod.Path.Wrap("SomeGameFunction", function(baseFunc, ...)
     --     if not lib.isEnabled(config) then return baseFunc(...) end
+    --     -- Module-level tracing: gated on config.DebugMode.
+    --     -- Core's Dev tab controls this flag; standalone UI shows a checkbox for it.
+    --     -- lib.log("MyModId", config.DebugMode, "something happened")
     --     return baseFunc(...)
     -- end)
 end
