@@ -4,21 +4,21 @@
 -- Copy this file as src/main.lua in a new mod folder.
 -- Fill in the sections marked FILL below.
 --
--- Special modules get their own sidebar tab in Core's UI and can encode
--- custom state into the config hash. They also render standalone when Core
--- is not installed.
+-- Special modules get their own sidebar tab in the Framework UI and can encode
+-- custom state into the config hash. They also render standalone when the
+-- coordinator is not installed.
 --
 -- Staging and sync are handled by lib.createSpecialState.
--- Hashing is handled by Core via definition.stateSchema — modules don't encode/decode.
+-- Hashing is handled by Framework via definition.stateSchema — modules don't encode/decode.
 --
 -- Public API wired automatically:
 --   public.SnapshotStaging          -- re-read config into staging
 --   public.SyncToConfig             -- flush staging to config
---   public.definition.stateSchema   -- declares state shape for Core to hash
+--   public.definition.stateSchema   -- declares state shape for Framework to hash
 --
 -- You implement (optional):
---   public.DrawTab(imgui, onChanged, theme)         -- full tab content
---   public.DrawQuickContent(imgui, onChanged, theme) -- quick setup snippet
+--   public.DrawTab(ui, onChanged, theme)         -- full tab content
+--   public.DrawQuickContent(ui, onChanged, theme) -- quick setup snippet
 
 local mods = rom.mods
 mods['SGG_Modding-ENVY'].auto()
@@ -32,31 +32,28 @@ chalk = mods['SGG_Modding-Chalk']
 reload = mods['SGG_Modding-ReLoad']
 local lib = mods['adamant-ModpackLib']
 
--- =============================================================================
--- FILL: Pack identity — filled automatically by new_module.py
--- =============================================================================
-local PACK_ID = error('FILL: set PACK_ID to your pack id, e.g. "speedrun"')
-
 config = chalk.auto('config.lua')
 public.config = config
 
-local backup, revert = lib.createBackupSystem()
+local _, revert = lib.createBackupSystem()
+
+local PACK_ID = error("FILL: set PACK_ID to your pack id")
 
 -- =============================================================================
 -- FILL: Module definition
 -- =============================================================================
 
 public.definition = {
-    id           = "",              -- Unique key, e.g. "FirstHammer"
-    name         = "",              -- Display name, e.g. "First Hammer Selection"
-    tabLabel     = "",              -- Sidebar tab label in Core UI, e.g. "Hammers"
-    category     = "",              -- For standalone grouping, e.g. "RunModifiers"
-    group        = "",              -- UI group header
-    tooltip      = "",              -- Hover text
-    default      = false,           -- Default enabled state
-    special      = true,            -- Marks this as a special module
-    dataMutation = false,           -- true if apply() modifies game tables
-    modpack      = PACK_ID,         -- The modpack this module belongs to
+    modpack      = PACK_ID, -- Opts this module into pack discovery
+    id           = "",           -- Unique key, e.g. "FirstHammer"
+    name         = "",           -- Display name, e.g. "First Hammer Selection"
+    tabLabel     = "",           -- Sidebar tab label in the UI, e.g. "Hammers"
+    category     = "",           -- Category, e.g. "Bug Fixes" | "Run Modifiers" | "QoL"
+    group        = "",           -- UI group header, drives merged repo assignment
+    tooltip      = "",           -- Hover text
+    default      = false,        -- Default enabled state
+    special      = true,         -- Marks this as a special module
+    dataMutation = false,        -- true if apply() modifies game tables
 }
 
 -- =============================================================================
@@ -67,11 +64,14 @@ public.definition = {
 -- Example:
 -- local MY_OPTIONS = { "OptionA", "OptionB", "OptionC" }
 
+-- Layout constants — set per-module based on your label text lengths.
+local DEFAULT_FIELD_MEDIUM = 0.4
+
 -- =============================================================================
 -- FILL: State schema & staging
 -- =============================================================================
 -- Declare your config shape on definition.stateSchema.
--- Core uses this for hashing and profiles. lib.createSpecialState gives you
+-- Framework uses this for hashing and profiles. lib.createSpecialState gives you
 -- a plain staging table for fast UI access.
 --
 -- Supported field types:
@@ -113,7 +113,7 @@ end
 
 local function registerHooks()
     -- modutil.mod.Path.Wrap("SomeGameFunction", function(baseFunc, ...)
-    --     if not lib.isEnabled(config) then return baseFunc(...) end
+    --     if not lib.isEnabled(config, public.definition.modpack) then return baseFunc(...) end
     --     return baseFunc(...)
     -- end)
 end
@@ -121,28 +121,36 @@ end
 -- =============================================================================
 -- FILL: UI rendering
 -- =============================================================================
--- Draw functions receive an optional `theme` table (Core.Theme when hosted,
--- nil when standalone). Pick the keys you need, falling back to baked-in defaults.
+-- DrawTab and DrawQuickContent receive a `theme` table (Framework theme when hosted,
+-- nil when standalone). Unpack only what you need at the public boundary and
+-- pass plain values down to inner functions — never pass `theme` itself deeper.
 --
--- Available theme keys (when hosted by Core):
---   theme.FIELD_MEDIUM   -- fraction of window width for medium input fields
---   theme.FIELD_NARROW   -- fraction for narrow fields
---   theme.FIELD_WIDE     -- fraction for wide fields
---   theme.colors         -- color table (info, success, error, warning, text, textDisabled, ...)
---   theme.ImGuiTreeNodeFlags  -- flag constants (DefaultOpen, Leaf, Framed, CollapsingHeader)
---   theme.PushTheme() / PopTheme()
+-- Available theme keys:
+--   theme.colors             -- { info, success, error, warning, text, textDisabled, ... }
+--   theme.FIELD_MEDIUM       -- fraction of window width for medium input fields
+--   theme.FIELD_NARROW       -- fraction for narrow fields
+--   theme.FIELD_WIDE         -- fraction for wide fields
+--   theme.ImGuiTreeNodeFlags -- { None, DefaultOpen, Leaf, Framed, CollapsingHeader, ... }
+--   theme.PushTheme          -- function()  apply full color theme (useful for standalone windows)
+--   theme.PopTheme           -- function()  paired with PushTheme
 --
--- Label column offset is module-specific — declare your own DEFAULT_LABEL_OFFSET.
--- Text coloring: call ImGui directly (ui.TextColored, ui.PushStyleColor, etc.).
+-- headerColor pattern (add `local ImGuiCol = rom.ImGuiCol` at the top of your file):
+--   local headerColor = (colors and colors.info) or {1, 1, 1, 1}
+--   ui.PushStyleColor(ImGuiCol.Text, table.unpack(headerColor))
+--   local open = ui.CollapsingHeader("Section")
+--   ui.PopStyleColor()
+--
 
-local function DrawMainContent(ui, onChanged, theme)
+--luacheck: ignore 212
+local function DrawMainContent(ui, onChanged, colors, headerColor, fieldMedium)
     -- Your full tab UI here.
     -- Use `staging` for reads/writes (it's a plain table, fast for UI).
     -- Call onChanged() after any user interaction that modifies staging.
     ui.Text("TODO: implement tab content")
 end
 
-local function DrawQuickSnippet(ui, onChanged, theme)
+--luacheck: ignore 212
+local function DrawQuickSnippet(ui, onChanged, colors, fieldMedium)
     -- Abbreviated UI for the Quick Setup tab (optional).
     -- Typically shows only the most relevant option(s).
     ui.Text("TODO: implement quick content")
@@ -159,15 +167,22 @@ public.definition.revert = revert
 public.SnapshotStaging    = snapshotStaging
 public.SyncToConfig       = syncToConfig
 
---- Draw the full tab content (Core renders the enable checkbox above this).
-function public.DrawTab(imgui, onChanged, theme)
-    imgui.Spacing()
-    DrawMainContent(imgui, onChanged, theme)
+--- Draw the full tab content (Framework renders the enable checkbox above this).
+--luacheck: ignore 122
+function public.DrawTab(ui, onChanged, theme)
+    local colors      = theme and theme.colors
+    local headerColor = (colors and colors.info) or {1, 1, 1, 1}
+    local fieldMedium = (theme and theme.FIELD_MEDIUM) or DEFAULT_FIELD_MEDIUM
+    ui.Spacing()
+    DrawMainContent(ui, onChanged, colors, headerColor, fieldMedium)
 end
 
 --- Draw quick-access content for the Quick Setup tab.
-function public.DrawQuickContent(imgui, onChanged, theme)
-    DrawQuickSnippet(imgui, onChanged, theme)
+--luacheck: ignore 122
+function public.DrawQuickContent(ui, onChanged, theme)
+    local colors      = theme and theme.colors
+    local fieldMedium = (theme and theme.FIELD_MEDIUM) or DEFAULT_FIELD_MEDIUM
+    DrawQuickSnippet(ui, onChanged, colors, fieldMedium)
 end
 
 -- =============================================================================
@@ -180,19 +195,23 @@ modutil.once_loaded.game(function()
     loader.load(function()
         import_as_fallback(rom.game)
         registerHooks()
-        if lib.isEnabled(config, PACK_ID) then apply() end
+        if lib.isEnabled(config, public.definition.modpack) then apply() end
     end)
 end)
 
 -- =============================================================================
--- STANDALONE UI (renders when Core is not installed)
+-- STANDALONE UI (renders when coordinator is not installed)
 -- =============================================================================
 
 local showWindow = false
 
+local function onStandaloneChanged()
+    syncToConfig()
+end
+
 ---@diagnostic disable-next-line: redundant-parameter
 rom.gui.add_imgui(function()
-    if lib.isCoordinated(PACK_ID) then return end
+    if lib.isCoordinated(public.definition.modpack) then return end
     if not showWindow then return end
 
     if rom.ImGui.Begin(public.definition.name .. "###" .. public.definition.id) then
@@ -203,7 +222,10 @@ rom.gui.add_imgui(function()
         end
         rom.ImGui.Separator()
         rom.ImGui.Spacing()
-        DrawMainContent(rom.ImGui, syncToConfig, nil)
+        public.DrawQuickContent(rom.ImGui, onStandaloneChanged, nil)
+        rom.ImGui.Spacing()
+        rom.ImGui.Separator()
+        public.DrawTab(rom.ImGui, onStandaloneChanged, nil)
         rom.ImGui.End()
     else
         showWindow = false
@@ -212,8 +234,8 @@ end)
 
 ---@diagnostic disable-next-line: redundant-parameter
 rom.gui.add_to_menu_bar(function()
-    if lib.isCoordinated(PACK_ID) then return end
-    if rom.ImGui.BeginMenu("adamant") then
+    if lib.isCoordinated(public.definition.modpack) then return end
+    if rom.ImGui.BeginMenu(public.definition.name) then
         if rom.ImGui.MenuItem(public.definition.name) then
             showWindow = not showWindow
         end

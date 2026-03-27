@@ -5,7 +5,7 @@
 -- Fill in the sections marked FILL below.
 --
 -- Works standalone with its own ImGui toggle.
--- When adamant-Modpack_Core is installed, the core handles UI — standalone UI is skipped.
+-- When the coordinator is installed, the Framework handles UI — standalone UI is skipped.
 
 local mods = rom.mods
 mods['SGG_Modding-ENVY'].auto()
@@ -19,32 +19,30 @@ chalk = mods['SGG_Modding-Chalk']
 reload = mods['SGG_Modding-ReLoad']
 local lib = mods['adamant-ModpackLib']
 
--- =============================================================================
--- FILL: Pack identity — filled automatically by new_module.py
--- =============================================================================
-local PACK_ID = error('FILL: set PACK_ID to your pack id, e.g. "speedrun"')
-
 config = chalk.auto('config.lua')
 public.config = config
 
 local backup, revert = lib.createBackupSystem()
+
+local PACK_ID = error("FILL: set PACK_ID to your pack id")
 
 -- =============================================================================
 -- FILL: Module definition
 -- =============================================================================
 
 public.definition = {
-    id           = "",              -- Unique key. Never rename after release — it is a hash key.
-    name         = "",              -- Display name
-    category     = "",              -- "Bug Fixes" | "Run Modifiers" | "QoL" (new string = new tab)
-    group        = "",              -- UI group header within the category tab
-    tooltip      = "",              -- Hover text
-    default      = true,            -- Default enabled state (true = on by default)
-    dataMutation = true,            -- true if apply() modifies game tables, false for hook-only mods
-    modpack      = PACK_ID,         -- The modpack this module belongs to.
+    modpack      = PACK_ID, -- Opts this module into pack discovery
+    id           = "",           -- Unique key
+    name         = "",           -- Display name
+    category     = "",           -- Tab label in the UI
+    group        = "",           -- UI group header
+    tooltip      = "",           -- Hover text
+    default      = true,         -- Default enabled state
+    dataMutation = true,         -- true if apply() modifies game tables, false for hook-only mods
 
-    -- Optional: inline options rendered below the checkbox in Core's UI.
-    -- Core handles staging, hashing, and UI — module just reads config values in hooks.
+    -- Optional: inline options rendered below the checkbox in the Framework UI.
+    -- Framework handles staging, hashing, and UI — module just reads config values in hooks.
+    -- Bits auto-calculated from #values if omitted.
     --
     -- Supported types:
     --   "checkbox" — toggle, stores true/false
@@ -79,9 +77,8 @@ end
 
 local function registerHooks()
     -- modutil.mod.Path.Wrap("SomeGameFunction", function(baseFunc, ...)
-    --     if not lib.isEnabled(config, PACK_ID) then return baseFunc(...) end
+    --     if not lib.isEnabled(config, public.definition.modpack) then return baseFunc(...) end
     --     -- Module-level tracing: gated on config.DebugMode.
-    --     -- Core's Dev tab controls this flag; standalone UI shows a checkbox for it.
     --     -- lib.log("MyModId", config.DebugMode, "something happened")
     --     return baseFunc(...)
     -- end)
@@ -100,14 +97,14 @@ modutil.once_loaded.game(function()
     loader.load(function()
         import_as_fallback(rom.game)
         registerHooks()
-        if lib.isEnabled(config, PACK_ID) then apply() end
-        if public.definition.dataMutation and not lib.isCoordinated(PACK_ID) then
+        if lib.isEnabled(config, public.definition.modpack) then apply() end
+        if public.definition.dataMutation and not lib.isCoordinated(public.definition.modpack) then
             SetupRunData()
         end
     end)
 end)
 
--- Standalone UI — menu-bar toggle when Core is not installed
+-- Standalone UI — menu-bar toggle when coordinator is not installed
 local uiCallback = lib.standaloneUI(public.definition, config, apply, revert)
 ---@diagnostic disable-next-line: redundant-parameter
 rom.gui.add_to_menu_bar(uiCallback)
