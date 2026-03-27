@@ -30,7 +30,12 @@ game = rom.game
 modutil = mods['SGG_Modding-ModUtil']
 chalk = mods['SGG_Modding-Chalk']
 reload = mods['SGG_Modding-ReLoad']
-local lib = mods['adamant-Modpack_Lib']
+local lib = mods['adamant-ModpackLib']
+
+-- =============================================================================
+-- FILL: Pack identity — filled automatically by new_module.py
+-- =============================================================================
+local PACK_ID = error('FILL: set PACK_ID to your pack id, e.g. "speedrun"')
 
 config = chalk.auto('config.lua')
 public.config = config
@@ -51,7 +56,7 @@ public.definition = {
     default      = false,           -- Default enabled state
     special      = true,            -- Marks this as a special module
     dataMutation = false,           -- true if apply() modifies game tables
-    modpack      = "h2-modpack",    -- The modpack this module belongs to
+    modpack      = PACK_ID,         -- The modpack this module belongs to
 }
 
 -- =============================================================================
@@ -120,13 +125,15 @@ end
 -- nil when standalone). Pick the keys you need, falling back to baked-in defaults.
 --
 -- Available theme keys (when hosted by Core):
---   theme.LABEL_OFFSET   -- fraction of window width for label column
 --   theme.FIELD_MEDIUM   -- fraction of window width for medium input fields
 --   theme.FIELD_NARROW   -- fraction for narrow fields
 --   theme.FIELD_WIDE     -- fraction for wide fields
---   theme.colors         -- color table
---   theme.DrawColoredText(ui, text, color)
---   theme.PushTheme(ui) / theme.PopTheme(ui)
+--   theme.colors         -- color table (info, success, error, warning, text, textDisabled, ...)
+--   theme.ImGuiTreeNodeFlags  -- flag constants (DefaultOpen, Leaf, Framed, CollapsingHeader)
+--   theme.PushTheme() / PopTheme()
+--
+-- Label column offset is module-specific — declare your own DEFAULT_LABEL_OFFSET.
+-- Text coloring: call ImGui directly (ui.TextColored, ui.PushStyleColor, etc.).
 
 local function DrawMainContent(ui, onChanged, theme)
     -- Your full tab UI here.
@@ -173,7 +180,7 @@ modutil.once_loaded.game(function()
     loader.load(function()
         import_as_fallback(rom.game)
         registerHooks()
-        if lib.isEnabled(config) then apply() end
+        if lib.isEnabled(config, PACK_ID) then apply() end
     end)
 end)
 
@@ -185,7 +192,7 @@ local showWindow = false
 
 ---@diagnostic disable-next-line: redundant-parameter
 rom.gui.add_imgui(function()
-    if mods['adamant-Modpack_Core'] then return end
+    if lib.isCoordinated(PACK_ID) then return end
     if not showWindow then return end
 
     if rom.ImGui.Begin(public.definition.name .. "###" .. public.definition.id) then
@@ -205,7 +212,7 @@ end)
 
 ---@diagnostic disable-next-line: redundant-parameter
 rom.gui.add_to_menu_bar(function()
-    if mods['adamant-Modpack_Core'] then return end
+    if lib.isCoordinated(PACK_ID) then return end
     if rom.ImGui.BeginMenu("adamant") then
         if rom.ImGui.MenuItem(public.definition.name) then
             showWindow = not showWindow

@@ -17,7 +17,12 @@ game = rom.game
 modutil = mods['SGG_Modding-ModUtil']
 chalk = mods['SGG_Modding-Chalk']
 reload = mods['SGG_Modding-ReLoad']
-local lib = mods['adamant-Modpack_Lib']
+local lib = mods['adamant-ModpackLib']
+
+-- =============================================================================
+-- FILL: Pack identity — filled automatically by new_module.py
+-- =============================================================================
+local PACK_ID = error('FILL: set PACK_ID to your pack id, e.g. "speedrun"')
 
 config = chalk.auto('config.lua')
 public.config = config
@@ -36,7 +41,7 @@ public.definition = {
     tooltip      = "",              -- Hover text
     default      = true,            -- Default enabled state (true = on by default)
     dataMutation = true,            -- true if apply() modifies game tables, false for hook-only mods
-    modpack      = "h2-modpack",    -- The modpack this module belongs to.
+    modpack      = PACK_ID,         -- The modpack this module belongs to.
 
     -- Optional: inline options rendered below the checkbox in Core's UI.
     -- Core handles staging, hashing, and UI — module just reads config values in hooks.
@@ -74,7 +79,7 @@ end
 
 local function registerHooks()
     -- modutil.mod.Path.Wrap("SomeGameFunction", function(baseFunc, ...)
-    --     if not lib.isEnabled(config) then return baseFunc(...) end
+    --     if not lib.isEnabled(config, PACK_ID) then return baseFunc(...) end
     --     -- Module-level tracing: gated on config.DebugMode.
     --     -- Core's Dev tab controls this flag; standalone UI shows a checkbox for it.
     --     -- lib.log("MyModId", config.DebugMode, "something happened")
@@ -95,8 +100,8 @@ modutil.once_loaded.game(function()
     loader.load(function()
         import_as_fallback(rom.game)
         registerHooks()
-        if lib.isEnabled(config) then apply() end
-        if public.definition.dataMutation and not mods['adamant-Modpack_Core'] then
+        if lib.isEnabled(config, PACK_ID) then apply() end
+        if public.definition.dataMutation and not lib.isCoordinated(PACK_ID) then
             SetupRunData()
         end
     end)

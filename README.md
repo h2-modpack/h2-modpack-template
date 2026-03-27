@@ -20,9 +20,9 @@ This mod can be configured in-game.
 
 This module is part of the [H2 Modular Modpack](https://github.com/h2-modpack/h2-modular-modpack). Please read the main project documentation for information on architecture and conventions.
 
-- **[Project README](https://github.com/h2-modpack/h2-modular-modpack/blob/main/README.md)**: For local setup and prerequisites.
-- **[Core CONTRIBUTING.md](https://github.com/h2-modpack/h2-modpack-coordinator/blob/main/CONTRIBUTING.md)**: For architecture, discovery system, and UI.
-- **[Lib CONTRIBUTING.md](https://github.com/h2-modpack/h2-modpack-Lib/blob/main/CONTRIBUTING.md)**: For the public API reference, module contract, and shared utilities.
+- **[Architecture](https://github.com/h2-modpack/h2-modular-modpack/blob/main/ARCHITECTURE.md)**: Framework, Lib, staging pattern, hash pipeline, module contract.
+- **[Framework CONTRIBUTING.md](https://github.com/h2-modpack/adamant-ModpackFramework/blob/main/CONTRIBUTING.md)**: Discovery system, UI rendering, theme contract.
+- **[Lib CONTRIBUTING.md](https://github.com/h2-modpack/adamant-ModpackLib/blob/main/CONTRIBUTING.md)**: Public API reference and shared utilities.
 
 ### Local Setup
 
