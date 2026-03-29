@@ -8,17 +8,16 @@
 -- custom state into the config hash. They also render standalone when the
 -- coordinator is not installed.
 --
--- Staging and sync are handled by lib.createSpecialState.
+-- Managed special state is handled by lib.createSpecialState.
 -- Hashing is handled by Framework via definition.stateSchema — modules don't encode/decode.
 --
 -- Public API wired automatically:
---   public.SnapshotStaging          -- re-read config into staging
---   public.SyncToConfig             -- flush staging to config
+--   public.specialState             -- managed special-state object
 --   public.definition.stateSchema   -- declares state shape for Framework to hash
 --
 -- You implement (optional):
---   public.DrawTab(ui, onChanged, theme)         -- full tab content
---   public.DrawQuickContent(ui, onChanged, theme) -- quick setup snippet
+--   public.DrawTab(ui, specialState, theme)         -- full tab content
+--   public.DrawQuickContent(ui, specialState, theme) -- quick setup snippet
 
 local mods = rom.mods
 mods['SGG_Modding-ENVY'].auto()
@@ -68,11 +67,19 @@ public.definition = {
 local DEFAULT_FIELD_MEDIUM = 0.4
 
 -- =============================================================================
--- FILL: State schema & staging
+-- FILL: State schema & managed state
 -- =============================================================================
 -- Declare your config shape on definition.stateSchema.
 -- Framework uses this for hashing and profiles. lib.createSpecialState gives you
--- a plain staging table for fast UI access.
+-- a managed `specialState` object with:
+--   specialState.view               -- read-only live view for rendering
+--   specialState.get(path)
+--   specialState.set(path, value)
+--   specialState.update(path, fn)
+--   specialState.toggle(path)
+--   specialState.reloadFromConfig()
+--   specialState.flushToConfig()
+--   specialState.isDirty()
 --
 -- Supported field types:
 --   "checkbox" — single boolean toggle
@@ -97,8 +104,7 @@ public.definition.stateSchema = {
     -- },
 }
 
-local staging, snapshotStaging, syncToConfig =
-    lib.createSpecialState(config, public.definition.stateSchema)
+local specialState = lib.createSpecialState(config, public.definition.stateSchema)
 
 -- =============================================================================
 -- FILL: apply() — mutate game data or set initial state
@@ -142,15 +148,14 @@ end
 --
 
 --luacheck: ignore 212
-local function DrawMainContent(ui, onChanged, colors, headerColor, fieldMedium)
+local function DrawMainContent(ui, specialState, colors, headerColor, fieldMedium)
     -- Your full tab UI here.
-    -- Use `staging` for reads/writes (it's a plain table, fast for UI).
-    -- Call onChanged() after any user interaction that modifies staging.
+    -- Read from specialState.view and mutate via specialState.set/update/toggle.
     ui.Text("TODO: implement tab content")
 end
 
 --luacheck: ignore 212
-local function DrawQuickSnippet(ui, onChanged, colors, fieldMedium)
+local function DrawQuickSnippet(ui, specialState, colors, fieldMedium)
     -- Abbreviated UI for the Quick Setup tab (optional).
     -- Typically shows only the most relevant option(s).
     ui.Text("TODO: implement quick content")
@@ -164,25 +169,24 @@ public.definition.apply = apply
 public.definition.revert = revert
 
 -- State management — wired directly from lib.createSpecialState
-public.SnapshotStaging    = snapshotStaging
-public.SyncToConfig       = syncToConfig
+public.specialState       = specialState
 
 --- Draw the full tab content (Framework renders the enable checkbox above this).
 --luacheck: ignore 122
-function public.DrawTab(ui, onChanged, theme)
+function public.DrawTab(ui, specialState, theme)
     local colors      = theme and theme.colors
     local headerColor = (colors and colors.info) or {1, 1, 1, 1}
     local fieldMedium = (theme and theme.FIELD_MEDIUM) or DEFAULT_FIELD_MEDIUM
     ui.Spacing()
-    DrawMainContent(ui, onChanged, colors, headerColor, fieldMedium)
+    DrawMainContent(ui, specialState, colors, headerColor, fieldMedium)
 end
 
 --- Draw quick-access content for the Quick Setup tab.
 --luacheck: ignore 122
-function public.DrawQuickContent(ui, onChanged, theme)
+function public.DrawQuickContent(ui, specialState, theme)
     local colors      = theme and theme.colors
     local fieldMedium = (theme and theme.FIELD_MEDIUM) or DEFAULT_FIELD_MEDIUM
-    DrawQuickSnippet(ui, onChanged, colors, fieldMedium)
+    DrawQuickSnippet(ui, specialState, colors, fieldMedium)
 end
 
 -- =============================================================================
@@ -205,8 +209,15 @@ end)
 
 local showWindow = false
 
-local function onStandaloneChanged()
-    syncToConfig()
+local function warnIfStandaloneBypassedState(before)
+    lib.warnIfSpecialConfigBypassedState(
+        public.definition.name,
+        config.DebugMode,
+        specialState,
+        config,
+        public.definition.stateSchema,
+        before
+    )
 end
 
 ---@diagnostic disable-next-line: redundant-parameter
@@ -222,10 +233,16 @@ rom.gui.add_imgui(function()
         end
         rom.ImGui.Separator()
         rom.ImGui.Spacing()
-        public.DrawQuickContent(rom.ImGui, onStandaloneChanged, nil)
+        local beforeQuick = lib.captureSpecialConfigSnapshot(config, public.definition.stateSchema)
+        public.DrawQuickContent(rom.ImGui, specialState, nil)
+        warnIfStandaloneBypassedState(beforeQuick)
+        if specialState.isDirty() then specialState.flushToConfig() end
         rom.ImGui.Spacing()
         rom.ImGui.Separator()
-        public.DrawTab(rom.ImGui, onStandaloneChanged, nil)
+        local beforeTab = lib.captureSpecialConfigSnapshot(config, public.definition.stateSchema)
+        public.DrawTab(rom.ImGui, specialState, nil)
+        warnIfStandaloneBypassedState(beforeTab)
+        if specialState.isDirty() then specialState.flushToConfig() end
         rom.ImGui.End()
     else
         showWindow = false
