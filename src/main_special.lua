@@ -104,7 +104,7 @@ public.definition.stateSchema = {
     -- },
 }
 
-local specialState = lib.createSpecialState(config, public.definition.stateSchema)
+local managedSpecialState = lib.createSpecialState(config, public.definition.stateSchema)
 
 -- =============================================================================
 -- FILL: apply() — mutate game data or set initial state
@@ -169,7 +169,7 @@ public.definition.apply = apply
 public.definition.revert = revert
 
 -- State management — wired directly from lib.createSpecialState
-public.specialState       = specialState
+public.specialState       = managedSpecialState
 
 --- Draw the full tab content (Framework renders the enable checkbox above this).
 --luacheck: ignore 122
