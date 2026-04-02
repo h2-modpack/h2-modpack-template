@@ -3,20 +3,21 @@
 -- =============================================================================
 -- Copy this file as src/main.lua in a new module repo.
 -- Fill in the TODO sections below.
--- luacheck: globals rom public import_as_fallback SetupRunData RegularModule_Internal
+-- luacheck: globals rom public import_as_fallback SetupRunData RegularModule_Internal modutil lib store _PLUGIN game
 
 local mods = rom.mods
 mods["SGG_Modding-ENVY"].auto()
 
-local rom = rom
-local public = public
-local modutil = mods["SGG_Modding-ModUtil"]
+---@diagnostic disable: lowercase-global
+rom = rom
+_PLUGIN = _PLUGIN
+game = rom.game
+modutil = mods["SGG_Modding-ModUtil"]
 local chalk = mods["SGG_Modding-Chalk"]
 local reload = mods["SGG_Modding-ReLoad"]
-local lib = mods["adamant-ModpackLib"]
+lib = mods["adamant-ModpackLib"]
 
 local config = chalk.auto("config.lua")
-public.config = config
 
 local PACK_ID = error("TODO: set PACK_ID to your pack id")
 
@@ -45,8 +46,13 @@ public.definition = {
     --       values = { "Vanilla", "Always", "Never" }, default = "Vanilla" },
     -- },
 }
-store = lib.createStore(config, public.definition)
-public.store = store
+public.store = lib.createStore(config, public.definition)
+store = public.store
+
+-- Required:
+-- Keep raw Chalk config local to main.lua.
+-- After store creation, imported files must use store.read/store.write.
+-- modutil, lib, and store may be shared across this module's files.
 
 -- =============================================================================
 -- Optional run-data lifecycle
@@ -88,7 +94,7 @@ public.store = store
 
 function internal.RegisterHooks()
     -- modutil.mod.Path.Wrap("SomeGameFunction", function(baseFunc, ...)
-    --     if not lib.isEnabled(public.store, public.definition.modpack) then
+    --     if not lib.isEnabled(store, public.definition.modpack) then
     --         return baseFunc(...)
     --     end
     --     return baseFunc(...)
@@ -106,8 +112,8 @@ local function init()
         internal.RegisterHooks()
     end
 
-    if lib.isEnabled(public.store, public.definition.modpack) then
-        lib.applyDefinition(public.definition, public.store)
+    if lib.isEnabled(store, public.definition.modpack) then
+        lib.applyDefinition(public.definition, store)
     end
 
     if public.definition.affectsRunData and not lib.isCoordinated(public.definition.modpack) then
@@ -121,4 +127,4 @@ modutil.once_loaded.game(function()
     loader.load(init, init)
 end)
 
-rom.gui.add_to_menu_bar(lib.standaloneUI(public.definition, public.store))
+rom.gui.add_to_menu_bar(lib.standaloneUI(public.definition, store))
