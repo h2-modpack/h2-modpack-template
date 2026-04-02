@@ -27,12 +27,12 @@ This template targets the current adamant Lib/Framework contract:
 - bootstrap uses `loader.load(init, init)`
 
 Template files:
-- `src/main.lua` for regular modules
+- `src/main_regular.lua` for regular modules
 - `src/main_special.lua` for the special-module template variant in this template repo
 
 When you create a real module repo:
-- use `src/main.lua` as the entrypoint file
-- copy `src/main_special.lua` into `src/main.lua` if you are building a special module
+- use `src/main_regular.lua` if you are building a regular module. rename to `main.lua`
+- use `src/main_special.lua` if you are building a special module. rename to `main.lua` 
 
 Use the template source files as the primary reference for code shape, then refer to the canonical docs for the full contract:
 
