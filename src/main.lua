@@ -1,110 +1,124 @@
 -- =============================================================================
--- ADAMANT MODULE TEMPLATE
+-- ADAMANT REGULAR MODULE TEMPLATE
 -- =============================================================================
--- Copy this file as src/main.lua in a new mod folder.
--- Fill in the sections marked FILL below.
---
--- Works standalone with its own ImGui toggle.
--- When the coordinator is installed, the Framework handles UI — standalone UI is skipped.
+-- Copy this file as src/main.lua in a new module repo.
+-- Fill in the TODO sections below.
+-- luacheck: globals rom public import_as_fallback SetupRunData RegularModule_Internal
 
 local mods = rom.mods
-mods['SGG_Modding-ENVY'].auto()
+mods["SGG_Modding-ENVY"].auto()
 
----@diagnostic disable: lowercase-global
-rom = rom
-_PLUGIN = _PLUGIN
-game = rom.game
-modutil = mods['SGG_Modding-ModUtil']
-chalk = mods['SGG_Modding-Chalk']
-reload = mods['SGG_Modding-ReLoad']
-local lib = mods['adamant-ModpackLib']
+local rom = rom
+local public = public
+local modutil = mods["SGG_Modding-ModUtil"]
+local chalk = mods["SGG_Modding-Chalk"]
+local reload = mods["SGG_Modding-ReLoad"]
+local lib = mods["adamant-ModpackLib"]
 
-config = chalk.auto('config.lua')
+local config = chalk.auto("config.lua")
 public.config = config
 
-local backup, revert = lib.createBackupSystem()
+local PACK_ID = error("TODO: set PACK_ID to your pack id")
 
-local PACK_ID = error("FILL: set PACK_ID to your pack id")
+RegularModule_Internal = RegularModule_Internal or {}
+local internal = RegularModule_Internal
 
 -- =============================================================================
--- FILL: Module definition
+-- Definition
 -- =============================================================================
 
 public.definition = {
-    modpack      = PACK_ID, -- Opts this module into pack discovery
-    id           = "",           -- Unique key
-    name         = "",           -- Display name
-    category     = "",           -- Tab label in the UI
-    group        = "",           -- UI group header
-    tooltip      = "",           -- Hover text
-    default      = true,         -- Default enabled state
-    dataMutation = true,         -- true if apply() modifies game tables, false for hook-only mods
+    modpack        = PACK_ID,
+    id             = "TODO_ModId",
+    name           = "TODO Module Name",
+    category       = "TODO Category",
+    group          = "TODO Group",
+    tooltip        = "TODO tooltip",
+    default        = true,
+    affectsRunData = false,
 
-    -- Optional: inline options rendered below the checkbox in the Framework UI.
-    -- Framework handles staging, hashing, and UI — module just reads config values in hooks.
-    -- Bits auto-calculated from #values if omitted.
-    --
-    -- Supported types:
-    --   "checkbox" — toggle, stores true/false
-    --   "dropdown" — combo box, stores selected string value
-    --   "radio"    — radio buttons, stores selected string value
-    --
-    -- IMPORTANT: configKey must be a flat string — never a table.
-    -- Table-path keys are only valid in stateSchema (special modules).
-    -- The configKey must also exist in config.lua with the correct default value.
-    --
+    -- Optional inline options for hosted/standalone managed UI.
+    -- configKey must be a flat string in regular modules.
     -- options = {
     --     { type = "checkbox", configKey = "Strict", label = "Strict Mode", default = false },
-    --     { type = "dropdown", configKey = "Mode",   label = "Mode",
-    --       values = {"Vanilla", "Always", "Never"}, default = "Vanilla" },
-    --     { type = "radio",    configKey = "Speed",  label = "Speed",
-    --       values = {"Slow", "Normal", "Fast"}, default = "Normal" },
+    --     { type = "dropdown", configKey = "Mode", label = "Mode",
+    --       values = { "Vanilla", "Always", "Never" }, default = "Vanilla" },
     -- },
 }
 
--- =============================================================================
--- FILL: apply() — mutate game data (use backup before changes)
--- =============================================================================
-
-local function apply()
-    -- backup(TraitData.SomeTrait, "SomeProperty")
-    -- TraitData.SomeTrait.SomeProperty = newValue
-end
+public.store = lib.createStore(config, public.definition)
 
 -- =============================================================================
--- FILL: registerHooks() — wrap game functions
+-- Optional run-data lifecycle
 -- =============================================================================
 
-local function registerHooks()
+-- Patch-only example:
+--
+-- public.definition.affectsRunData = true
+-- public.definition.patchPlan = function(plan, store)
+--     plan:set(SomeTable, "SomeKey", 123)
+-- end
+
+-- Manual example:
+--
+-- local backup, restore = lib.createBackupSystem()
+--
+-- public.definition.affectsRunData = true
+-- public.definition.apply = function()
+--     backup(SomeTable, "SomeKey")
+--     SomeTable.SomeKey = 123
+-- end
+-- public.definition.revert = restore
+
+-- Hybrid example:
+--
+-- public.definition.patchPlan = function(plan, store)
+--     plan:set(SomeTable, "SomeKey", 123)
+-- end
+-- public.definition.apply = function()
+--     -- procedural remainder
+-- end
+-- public.definition.revert = function()
+--     -- procedural remainder revert
+-- end
+
+-- =============================================================================
+-- Optional hooks
+-- =============================================================================
+
+function internal.RegisterHooks()
     -- modutil.mod.Path.Wrap("SomeGameFunction", function(baseFunc, ...)
-    --     if not lib.isEnabled(config, public.definition.modpack) then return baseFunc(...) end
-    --     -- Module-level tracing: gated on config.DebugMode.
-    --     -- lib.log("MyModId", config.DebugMode, "something happened")
+    --     if not lib.isEnabled(public.store, public.definition.modpack) then
+    --         return baseFunc(...)
+    --     end
     --     return baseFunc(...)
     -- end)
 end
 
 -- =============================================================================
--- Wiring (do not modify)
+-- Bootstrap
 -- =============================================================================
 
-public.definition.apply = apply
-public.definition.revert = revert
+local function init()
+    import_as_fallback(rom.game)
+
+    if internal.RegisterHooks then
+        internal.RegisterHooks()
+    end
+
+    if lib.isEnabled(public.store, public.definition.modpack) then
+        lib.applyDefinition(public.definition, public.store)
+    end
+
+    if public.definition.affectsRunData and not lib.isCoordinated(public.definition.modpack) then
+        SetupRunData()
+    end
+end
 
 local loader = reload.auto_single()
 
 modutil.once_loaded.game(function()
-    loader.load(function()
-        import_as_fallback(rom.game)
-        registerHooks()
-        if lib.isEnabled(config, public.definition.modpack) then apply() end
-        if public.definition.dataMutation and not lib.isCoordinated(public.definition.modpack) then
-            SetupRunData()
-        end
-    end)
+    loader.load(init, init)
 end)
 
--- Standalone UI — menu-bar toggle when coordinator is not installed
-local uiCallback = lib.standaloneUI(public.definition, config, apply, revert)
----@diagnostic disable-next-line: redundant-parameter
-rom.gui.add_to_menu_bar(uiCallback)
+rom.gui.add_to_menu_bar(lib.standaloneUI(public.definition, public.store))
