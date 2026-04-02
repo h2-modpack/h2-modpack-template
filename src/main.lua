@@ -45,8 +45,8 @@ public.definition = {
     --       values = { "Vanilla", "Always", "Never" }, default = "Vanilla" },
     -- },
 }
-
-public.store = lib.createStore(config, public.definition)
+store = lib.createStore(config, public.definition)
+public.store = store
 
 -- =============================================================================
 -- Optional run-data lifecycle

@@ -43,7 +43,8 @@ public.definition = {
     },
 }
 
-public.store = lib.createStore(config, public.definition)
+store = lib.createStore(config, public.definition)
+public.store = store
 
 -- =============================================================================
 -- Optional run-data lifecycle
