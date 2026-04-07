@@ -18,6 +18,7 @@ local chalk = mods["SGG_Modding-Chalk"]
 local reload = mods["SGG_Modding-ReLoad"]
 lib = mods["adamant-ModpackLib"]
 
+local dataDefaults = import("config.lua")
 local config = chalk.auto("config.lua")
 
 local PACK_ID = error("TODO: set PACK_ID to your pack id")
@@ -36,15 +37,28 @@ public.definition = {
     tabLabel       = "TODO Tab Label",
     special        = true,
     tooltip        = "TODO tooltip",
-    default        = false,
+    default        = dataDefaults.Enabled,
     affectsRunData = false,
-    stateSchema = {
-        -- { type = "dropdown", configKey = "Mode", values = { "A", "B" }, default = "A" },
-        -- { type = "checkbox", configKey = { "Nested", "Flag" }, default = false },
+    storage = {
+        -- { type = "string", alias = "Mode", configKey = "Mode", default = "A", maxLen = 32 },
+        -- { type = "bool",   alias = "NestedFlag", configKey = { "Nested", "Flag" }, default = false },
     },
+    ui = {
+        -- { type = "dropdown", binds = { value = "Mode" }, label = "Mode", values = { "A", "B" }, quick = true },
+        -- { type = "checkbox", binds = { value = "NestedFlag" }, label = "Nested Flag" },
+    },
+    -- Optional:
+    -- customTypes = {
+    --     widgets = {
+    --         -- Custom widget definitions for this module only.
+    --     },
+    --     layouts = {
+    --         -- Custom layout definitions for this module only.
+    --     },
+    -- },
 }
 
-public.store = lib.createStore(config, public.definition)
+public.store = lib.createStore(config, public.definition, dataDefaults)
 store = public.store
 
 -- Required:

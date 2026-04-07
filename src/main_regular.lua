@@ -17,6 +17,7 @@ local chalk = mods["SGG_Modding-Chalk"]
 local reload = mods["SGG_Modding-ReLoad"]
 lib = mods["adamant-ModpackLib"]
 
+local dataDefaults = import("config.lua")
 local config = chalk.auto("config.lua")
 
 local PACK_ID = error("TODO: set PACK_ID to your pack id")
@@ -35,18 +36,30 @@ public.definition = {
     category       = "TODO Category",
     group          = "TODO Group",
     tooltip        = "TODO tooltip",
-    default        = true,
+    default        = dataDefaults.Enabled,
     affectsRunData = false,
 
-    -- Optional inline options for hosted/standalone managed UI.
-    -- configKey must be a flat string in regular modules.
-    -- options = {
-    --     { type = "checkbox", configKey = "Strict", label = "Strict Mode", default = false },
-    --     { type = "dropdown", configKey = "Mode", label = "Mode",
-    --       values = { "Vanilla", "Always", "Never" }, default = "Vanilla" },
+    -- Optional hosted/standalone managed UI.
+    -- Prefer explicit aliases even when they match configKey.
+    -- storage = {
+    --     { type = "bool",   alias = "Strict", configKey = "Strict", default = false },
+    --     { type = "string", alias = "Mode",   configKey = "Mode",   default = "Vanilla", maxLen = 32 },
     -- },
+    -- ui = {
+    --     { type = "checkbox", binds = { value = "Strict" }, label = "Strict Mode", quick = true },
+    --     { type = "dropdown", binds = { value = "Mode" }, label = "Mode",
+    --       values = { "Vanilla", "Always", "Never" } },
+    -- },
+    -- Optional:
+    -- customTypes = {
+    --     widgets = {},
+    --     layouts = {},
+    -- },
+    -- selectQuickUi = function(store, uiState, quickNodes)
+    --     return nil -- or a quickId string / array / set for runtime quick filtering
+    -- end,
 }
-public.store = lib.createStore(config, public.definition)
+public.store = lib.createStore(config, public.definition, dataDefaults)
 store = public.store
 
 -- Required:

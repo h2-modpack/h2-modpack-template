@@ -22,10 +22,14 @@ This module is designed to work:
 
 This template targets the current adamant Lib/Framework contract:
 
-- regular modules use `public.store = lib.createStore(config, public.definition)`
-- special modules also use `public.store.uiState`
+- all modules use `local dataDefaults = import("config.lua")` and `public.store = lib.createStore(config, public.definition, dataDefaults)`
+- modules declare `definition.storage`
+- modules declare `definition.ui` when they want Lib-managed rendering
+- special modules use `public.store.uiState` in custom tabs/quick content
 - modules that change run data declare `affectsRunData = true`
 - lifecycle shape is inferred from `patchPlan` and/or `apply/revert`
+- module-local reusable widgets/layouts may be declared in `definition.customTypes`
+- quick UI nodes may opt into runtime filtering through `definition.selectQuickUi(...)`
 - bootstrap uses `loader.load(init, init)`
 
 Template files:
@@ -41,6 +45,10 @@ Use the template source files as the primary reference for code shape, then refe
 - [ModpackLib MODULE_AUTHORING.md](https://github.com/h2-modpack/ModpackLib/blob/main/MODULE_AUTHORING.md)
 - [ModpackLib API.md](https://github.com/h2-modpack/ModpackLib/blob/main/API.md)
 - [ModpackFramework COORDINATOR_GUIDE.md](https://github.com/h2-modpack/ModpackFramework/blob/main/COORDINATOR_GUIDE.md)
+
+Important:
+- `definition.options` and `definition.stateSchema` are legacy and unsupported
+- quick candidate ids default from `binds`, but explicit `quickId` is recommended when runtime quick filtering is used
 
 ## Local Setup
 
