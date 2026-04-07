@@ -42,8 +42,8 @@ When you create a real module repo:
 
 Use the template source files as the primary reference for code shape, then refer to the canonical docs for the full contract:
 
-- [ModpackLib README.md](https://github.com/h2-modpack/ModpackLib/blob/main/README.md)
-- [ModpackFramework README.md](https://github.com/h2-modpack/ModpackFramework/blob/main/README.md)
+- [ModpackLib README.md](https://github.com/h2-modpack/adamant-ModpackLib/blob/main/README.md)
+- [ModpackFramework README.md](https://github.com/h2-modpack/adamant-ModpackFramework/blob/main/README.md)
 
 Important:
 - `definition.options` and `definition.stateSchema` are legacy and unsupported
