@@ -42,9 +42,8 @@ When you create a real module repo:
 
 Use the template source files as the primary reference for code shape, then refer to the canonical docs for the full contract:
 
-- [ModpackLib MODULE_AUTHORING.md](https://github.com/h2-modpack/ModpackLib/blob/main/MODULE_AUTHORING.md)
-- [ModpackLib API.md](https://github.com/h2-modpack/ModpackLib/blob/main/API.md)
-- [ModpackFramework COORDINATOR_GUIDE.md](https://github.com/h2-modpack/ModpackFramework/blob/main/COORDINATOR_GUIDE.md)
+- [ModpackLib README.md](https://github.com/h2-modpack/ModpackLib/blob/main/README.md)
+- [ModpackFramework README.md](https://github.com/h2-modpack/ModpackFramework/blob/main/README.md)
 
 Important:
 - `definition.options` and `definition.stateSchema` are legacy and unsupported
