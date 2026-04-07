@@ -2,6 +2,8 @@
 
 > TODO: Short description of what this mod does.
 
+Part of the [TODO_PackTitle modpack](TODO_ShellUrl).
+
 ## Features
 
 - TODO: List features
