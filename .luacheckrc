@@ -15,5 +15,7 @@ read_globals = {
     "import_as_fallback",
     "import",
     "SetupRunData",
+    "TemplateModule_Internal",
+    "lib"
 }
 exclude_files = { "src/main.lua", "src/main_special.lua" }
