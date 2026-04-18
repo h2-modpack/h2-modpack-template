@@ -9,13 +9,13 @@ globals = {
     "chalk",
     "reload",
     "_PLUGIN",
+    "TemplateModule_Internal"
 }
 read_globals = {
     "imgui",
     "import_as_fallback",
     "import",
     "SetupRunData",
-    "TemplateModule_Internal",
     "lib"
 }
 exclude_files = { "src/main.lua", "src/main_special.lua" }
