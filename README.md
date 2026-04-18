@@ -22,23 +22,23 @@ This module is designed to work:
 
 This template targets the current adamant Lib/Framework contract:
 
-- all modules use `local dataDefaults = import("config.lua")` and `public.store = lib.createStore(config, public.definition, dataDefaults)`
-- modules declare `definition.storage`
-- modules declare `definition.ui` when they want Lib-managed rendering
-- special modules use `public.store.uiState` in custom tabs/quick content
+- all modules use `local dataDefaults = import("config.lua")`
+- all modules create store with `public.store = lib.store.create(config, public.definition, dataDefaults)`
+- module UI is written directly in `DrawTab(ui, uiState)`
+- optional quick UI is written directly in `DrawQuickContent(ui, uiState)`
 - modules that change run data declare `affectsRunData = true`
 - lifecycle shape is inferred from `patchPlan` and/or `apply/revert`
-- module-local reusable widgets/layouts may be declared in `definition.customTypes`
-- quick UI nodes may opt into runtime filtering through `definition.selectQuickUi(...)`
-- bootstrap uses `loader.load(init, init)`
+- bootstrap uses `reload.auto_single()` + `modutil.once_loaded.game(...)`
+- game-data imports should happen inside `init()`, after the game-readiness gate has fired
 
 Template files:
-- `src/main_regular.lua` for regular modules
-- `src/main_special.lua` for the special-module template variant in this template repo
+- `src/main.lua` for the module entrypoint
+- `src/data.lua` for live game-data reads / patch-plan helpers / hook setup
+- `src/ui.lua` for `DrawTab` and optional `DrawQuickContent`
 
 When you create a real module repo:
-- use `src/main_regular.lua` if you are building a regular module. rename to `main.lua`
-- use `src/main_special.lua` if you are building a special module. rename to `main.lua` 
+- use `src/main.lua` as the entrypoint
+- keep `config.lua`, `data.lua`, and `ui.lua` split unless the module is trivial
 
 Use the template source files as the primary reference for code shape, then refer to the canonical docs for the full contract:
 
@@ -47,7 +47,9 @@ Use the template source files as the primary reference for code shape, then refe
 
 Important:
 - `definition.options` and `definition.stateSchema` are legacy and unsupported
-- quick candidate ids default from `binds`, but explicit `quickId` is recommended when runtime quick filtering is used
+- `definition.ui`, `definition.customTypes`, and `definition.selectQuickUi` are legacy and ignored
+- coordinated modules should declare `modpack`, `id`, `name`, and `storage`
+- the current framework contract is one tab per module
 
 ## Local Setup
 
