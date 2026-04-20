@@ -3,7 +3,7 @@
 -- =============================================================================
 -- Copy this file as src/main.lua in a new module repo.
 -- Fill in the TODO sections below.
--- luacheck: globals rom public import_as_fallback SetupRunData TemplateModule_Internal modutil lib store _PLUGIN game
+-- luacheck: globals rom public import_as_fallback TemplateModule_Internal modutil lib _PLUGIN game
 
 local mods = rom.mods
 mods["SGG_Modding-ENVY"].auto()
@@ -33,67 +33,38 @@ public.definition = {
     tooltip = "TODO tooltip",
     default = dataDefaults.Enabled,
     affectsRunData = false,
-    storage = {
-        { type = "bool", alias = "FeatureEnabled", configKey = "FeatureEnabled", default = false },
-        { type = "string", alias = "Mode", configKey = "Mode", default = "Vanilla", maxLen = 32 },
-        { type = "string", alias = "FilterText", lifetime = "transient", default = "", maxLen = 64 },
-    },
 }
 
--- Optional run-data lifecycle:
---
--- public.definition.affectsRunData = true
--- public.definition.patchPlan = function(plan, store)
---     if internal.BuildPatchPlan then
---         internal.BuildPatchPlan(plan, store)
---     end
--- end
---
--- Or use apply/revert for procedural lifecycle.
-
-public.store = nil
-store = nil
+public.host = nil
+local store
+local session
 internal.standaloneUi = nil
-
-local function registerHooks()
-    if internal.RegisterHooks then
-        internal.RegisterHooks()
-    end
-
-    public.DrawTab = internal.DrawTab
-    public.DrawQuickContent = internal.DrawQuickContent
-end
 
 local function init()
     import_as_fallback(rom.game)
 
-    -- Import game-data readers/builders only after the game-readiness gate has fired.
+    -- Import module pieces only after the game-readiness gate has fired.
+    -- data.lua attaches storage/static data, logic.lua attaches mutation/hooks, ui.lua attaches drawing.
     import("data.lua")
+    import("logic.lua")
     import("ui.lua")
 
-    public.store = lib.store.create(config, public.definition, dataDefaults)
-    store = public.store
+    store, session = lib.createStore(config, public.definition, dataDefaults)
+    internal.store = store
 
-    registerHooks()
-
-    if lib.coordinator.isEnabled(store, public.definition.modpack) then
-        lib.mutation.apply(public.definition, store)
+    if internal.RegisterHooks then
+        internal.RegisterHooks()
     end
 
-    if public.definition.affectsRunData and not lib.coordinator.isCoordinated(public.definition.modpack) then
-        SetupRunData()
-    end
+    public.host = lib.createModuleHost({
+        definition = public.definition,
+        store = store,
+        session = session,
+        drawTab = internal.DrawTab,
+        drawQuickContent = internal.DrawQuickContent,
+    })
 
-    internal.standaloneUi = lib.host.standaloneUI(
-        public.definition,
-        store,
-        store.uiState,
-        {
-            getDrawTab = function()
-                return public.DrawTab
-            end,
-        }
-    )
+    internal.standaloneUi = lib.standaloneHost(public.host)
 end
 
 local loader = reload.auto_single()

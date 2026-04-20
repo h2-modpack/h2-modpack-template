@@ -3,4 +3,6 @@
 return {
     Enabled = true,
     DebugMode = false,
+    FeatureEnabled = false,
+    Mode = "Vanilla",
 }
