@@ -25,12 +25,14 @@ This template targets the current adamant Lib/Framework contract:
 - all modules use `local dataDefaults = import("config.lua")`
 - all modules create local store/session with `local store, session = lib.createStore(config, public.definition, dataDefaults)`
 - all modules expose `public.host = lib.createModuleHost(...)`
+- modules that register hooks pass `hookOwner = internal` and `registerHooks = internal.RegisterHooks` into `lib.createModuleHost(...)`
 - modules may copy `store` to `internal.store` for hook/logic code that runs outside the draw path
+- hooks should use `lib.hooks.Wrap`, `lib.hooks.Override`, or `lib.hooks.Context.Wrap`
 - module UI is written directly in `internal.DrawTab(ui, session)`
 - optional quick UI is written directly in `internal.DrawQuickContent(ui, session)`
 - modules that change run data declare `affectsRunData = true`
 - lifecycle shape is inferred from `patchPlan` and/or `apply/revert`
-- bootstrap uses `reload.auto_single()` + `modutil.once_loaded.game(...)`
+- bootstrap uses `reload.auto_single()` + `modutil.once_loaded.game(...)` + `loader.load(nil, init)`
 - game-data imports should happen inside `init()`, after the game-readiness gate has fired
 - annotate `lib` as `AdamantModpackLib` and type the module `internal` table so LuaLS can infer `AuthorSession` through `internal.DrawTab = function(...)`
 
@@ -48,7 +50,7 @@ Recommended ownership:
 - `main.lua` gathers module pieces, creates local store/session, creates `public.host`, and wires standalone rendering
 - `data.lua` declares what exists
 - `ui.lua` edits session-backed settings
-- `logic.lua` applies settings to the game through `internal.store`
+- `logic.lua` applies settings to the game through `internal.store` and owns `RegisterHooks`
 
 Scaling rule:
 - keep `main.lua`, `data.lua`, `ui.lua`, and `logic.lua` as the top-level contract
@@ -59,7 +61,8 @@ Scaling rule:
 
 Use the template source files as the primary reference for code shape, then refer to the canonical docs for the full contract:
 
-- [ModpackLib GETTING_STARTED.md](https://github.com/h2-modpack/adamant-ModpackLib/blob/main/GETTING_STARTED.md)
+- [ModpackLib GETTING_STARTED.md](https://github.com/h2-modpack/adamant-ModpackLib/blob/main/docs/GETTING_STARTED.md)
+- [ModpackLib MODULE_AUTHORING.md](https://github.com/h2-modpack/adamant-ModpackLib/blob/main/docs/MODULE_AUTHORING.md)
 - [ModpackLib README.md](https://github.com/h2-modpack/adamant-ModpackLib/blob/main/README.md)
 - [ModpackFramework README.md](https://github.com/h2-modpack/adamant-ModpackFramework/blob/main/README.md)
 

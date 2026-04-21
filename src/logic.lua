@@ -4,7 +4,7 @@
 -- This file is imported from main.lua inside init(), after once_loaded.game has fired.
 -- Use it for:
 -- - patch-plan helpers
--- - ModUtil hook registration
+-- - lib.hooks registration
 -- - runtime functions that read `internal.store` and modify game behavior
 --
 -- If logic grows, keep this file as the public logic loader/router and split
@@ -32,9 +32,10 @@ local internal = TemplateModule_Internal
 -- end
 
 function internal.RegisterHooks()
-    -- Register ModUtil wraps here if needed.
+    -- Register hooks here if needed.
+    -- createModuleHost() owns refresh/deactivation for omitted hooks.
     -- Example:
-    -- modutil.mod.Path.Wrap("FunctionName", function(baseFunc, ...)
+    -- lib.hooks.Wrap(internal, "FunctionName", function(baseFunc, ...)
     --     if not lib.isModuleEnabled(internal.store, public.definition.modpack) then
     --         return baseFunc(...)
     --     end
