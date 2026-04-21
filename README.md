@@ -26,12 +26,13 @@ This template targets the current adamant Lib/Framework contract:
 - all modules create local store/session with `local store, session = lib.createStore(config, public.definition, dataDefaults)`
 - all modules expose `public.host = lib.createModuleHost(...)`
 - modules may copy `store` to `internal.store` for hook/logic code that runs outside the draw path
-- module UI is written directly in `DrawTab(ui, session)`
-- optional quick UI is written directly in `DrawQuickContent(ui, session)`
+- module UI is written directly in `internal.DrawTab(ui, session)`
+- optional quick UI is written directly in `internal.DrawQuickContent(ui, session)`
 - modules that change run data declare `affectsRunData = true`
 - lifecycle shape is inferred from `patchPlan` and/or `apply/revert`
 - bootstrap uses `reload.auto_single()` + `modutil.once_loaded.game(...)`
 - game-data imports should happen inside `init()`, after the game-readiness gate has fired
+- annotate `lib` as `AdamantModpackLib` and type the module `internal` table so LuaLS can infer `AuthorSession` through `internal.DrawTab = function(...)`
 
 Template files:
 - `src/main.lua` for the module entrypoint
@@ -58,6 +59,7 @@ Scaling rule:
 
 Use the template source files as the primary reference for code shape, then refer to the canonical docs for the full contract:
 
+- [ModpackLib GETTING_STARTED.md](https://github.com/h2-modpack/adamant-ModpackLib/blob/main/GETTING_STARTED.md)
 - [ModpackLib README.md](https://github.com/h2-modpack/adamant-ModpackLib/blob/main/README.md)
 - [ModpackFramework README.md](https://github.com/h2-modpack/adamant-ModpackFramework/blob/main/README.md)
 
