@@ -10,22 +10,14 @@
 -- If logic grows, keep this file as the public logic loader/router and split
 -- behavior files under src/logic/ or src/behaviors/. Those files should attach
 -- internal helpers; this file should own RegisterHooks and lifecycle entrypoints.
---
--- Example:
--- import("logic/hooks.lua")
--- import("logic/patches.lua")
---
--- function internal.RegisterHooks()
---     internal.RegisterGameplayHooks()
--- end
--- luacheck: globals TemplateModule_Internal public modutil lib
+-- luacheck: globals TemplateModule_Internal lib
 
 local internal = TemplateModule_Internal
 
--- Enable this shape only when the module actually mutates run data:
+-- Enable this shape only when the module actually mutates run data.
+-- Also set `affectsRunData = true` in src/main.lua.
 --
--- public.definition.affectsRunData = true
--- public.definition.patchPlan = function(plan, activeStore)
+-- function internal.BuildPatchPlan(plan, activeStore)
 --     if activeStore.read("FeatureEnabled") then
 --         plan:set(SomeGameTable, "SomeKey", true)
 --     end
@@ -34,12 +26,12 @@ local internal = TemplateModule_Internal
 function internal.RegisterHooks()
     -- Register hooks here if needed.
     -- createModuleHost() owns refresh/deactivation for omitted hooks.
-    -- Example:
-    -- lib.hooks.Wrap(internal, "FunctionName", function(baseFunc, ...)
-    --     if not lib.isModuleEnabled(internal.store, public.definition.modpack) then
-    --         return baseFunc(...)
-    --     end
-    --     return baseFunc(...)
+-- Example:
+-- lib.hooks.Wrap(internal, "FunctionName", function(baseFunc, ...)
+--     if not lib.isModuleEnabled(internal.store, internal.PACK_ID) then
+--         return baseFunc(...)
+--     end
+--     return baseFunc(...)
     -- end)
 end
 

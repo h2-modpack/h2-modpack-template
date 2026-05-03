@@ -4,71 +4,66 @@
 
 Part of the [TODO_PackTitle modpack](TODO_ShellUrl).
 
-## Features
+## What It Does
 
-- TODO: List features
+TODO: Explain what this module lets players control.
 
-## Installation
+## Gameplay Impact
 
-Install via [r2modman](https://thunderstore.io/c/hades-ii/) or manually place in your `ReturnOfModding/plugins` folder.
+TODO: Explain how this module changes a run when enabled.
 
-## Configuration
+## How To Use
 
-This module is designed to work:
-- standalone, using Lib's standalone UI helpers
-- or under a coordinator, where Framework discovers it automatically
+Install using r2modman. In game, open the TODO_PackTitle menu and configure this module from the shared settings window.
 
 ## Development
 
 This template targets the current adamant Lib/Framework contract:
 
-- all modules use `local dataDefaults = import("config.lua")`
-- all modules create local store/session with `local store, session = lib.createStore(config, public.definition, dataDefaults)`
-- all modules expose `public.host = lib.createModuleHost(...)`
-- modules that register hooks pass `hookOwner = internal` and `registerHooks = internal.RegisterHooks` into `lib.createModuleHost(...)`
-- modules may copy `store` to `internal.store` for hook/logic code that runs outside the draw path
-- hooks should use `lib.hooks.Wrap`, `lib.hooks.Override`, or `lib.hooks.Context.Wrap`
-- module UI is written directly in `internal.DrawTab(ui, session)`
-- optional quick UI is written directly in `internal.DrawQuickContent(ui, session)`
+- `main.lua` owns `config`, `dataDefaults`, local `store/session`, and host creation
+- module pieces are imported from `init()` after `modutil.once_loaded.game(...)`
+- definitions are prepared with `lib.prepareDefinition(internal, dataDefaults, { ... })`
+- storage is required and should be returned by `internal.BuildStorage()`
+- hash layout hints use `hashGroupPlan`, usually returned by `internal.BuildHashGroupPlan()`
+- stores are created with `local store, session = lib.createStore(config, definition)`
+- hosts are created with `lib.createModuleHost(...)`; Lib publishes the live host internally
+- standalone mode uses `lib.standaloneHost()` with no arguments
+- module UI is written in `internal.DrawTab(ui, session)`
+- optional quick UI is written in `internal.DrawQuickContent(ui, session)`
 - modules that change run data declare `affectsRunData = true`
-- lifecycle shape is inferred from `patchPlan` and/or `apply/revert`
-- bootstrap uses `reload.auto_single()` + `modutil.once_loaded.game(...)` + `loader.load(nil, init)`
-- game-data imports should happen inside `init()`, after the game-readiness gate has fired
-- annotate `lib` as `AdamantModpackLib` and type the module `internal` table so LuaLS can infer `AuthorSession` through `internal.DrawTab = function(...)`
+- mutation lifecycle is declared through `patchPlan` and/or manual `apply/revert`
+- runtime hooks should use `lib.hooks.Wrap`, `lib.hooks.Override`, or `lib.hooks.Context.Wrap`
+- modules that register hooks pass `hookOwner = internal` and `registerHooks = internal.RegisterHooks` into `lib.createModuleHost(...)`
+- module logic that runs outside the draw path may read `internal.store`
 
 Template files:
+
 - `src/main.lua` for the module entrypoint
-- `src/data.lua` for storage, hash groups, static option lists, and lookup data
+- `src/data.lua` for storage, hash group plans, static option lists, and lookup data
 - `src/logic.lua` for patch plans, hooks, and runtime game modifications
 - `src/ui.lua` for `DrawTab` and optional `DrawQuickContent`
 
-When you create a real module repo:
-- use `src/main.lua` as the entrypoint
-- keep `config.lua`, `data.lua`, `logic.lua`, and `ui.lua` split unless the module is trivial
-
-Recommended ownership:
-- `main.lua` gathers module pieces, creates local store/session, creates `public.host`, and wires standalone rendering
-- `data.lua` declares what exists
-- `ui.lua` edits session-backed settings
-- `logic.lua` applies settings to the game through `internal.store` and owns `RegisterHooks`
-
 Scaling rule:
+
 - keep `main.lua`, `data.lua`, `ui.lua`, and `logic.lua` as the top-level contract
 - let `ui.lua` import `ui/*.lua` section files when UI grows
 - let `logic.lua` import `logic/*.lua` or `behaviors/*.lua` files when game logic grows
 - keep store/session/host creation in `main.lua`
-- keep storage schema and hash groups in `data.lua`
+- keep storage schema and hash group plans in `data.lua`
 
-Use the template source files as the primary reference for code shape, then refer to the canonical docs for the full contract:
+Canonical docs:
 
 - [ModpackLib GETTING_STARTED.md](https://github.com/h2-modpack/adamant-ModpackLib/blob/main/docs/GETTING_STARTED.md)
 - [ModpackLib MODULE_AUTHORING.md](https://github.com/h2-modpack/adamant-ModpackLib/blob/main/docs/MODULE_AUTHORING.md)
-- [ModpackLib README.md](https://github.com/h2-modpack/adamant-ModpackLib/blob/main/README.md)
-- [ModpackFramework README.md](https://github.com/h2-modpack/adamant-ModpackFramework/blob/main/README.md)
+- [ModpackLib HOT_RELOAD_ARCHITECTURE.md](https://github.com/h2-modpack/adamant-ModpackLib/blob/main/docs/HOT_RELOAD_ARCHITECTURE.md)
+- [ModpackLib KNOWN_LIMITATIONS.md](https://github.com/h2-modpack/adamant-ModpackLib/blob/main/docs/KNOWN_LIMITATIONS.md)
 
 Important:
-- `definition.options` and `definition.stateSchema` are legacy and unsupported
-- `definition.ui`, `definition.customTypes`, and `definition.selectQuickUi` are legacy and ignored
+
+- `public.host` is no longer part of the module contract
+- `definition.hashGroups` has been replaced by `hashGroupPlan`
+- `lib.standaloneHost(...)` takes no arguments
+- `definition.options`, `definition.stateSchema`, `definition.ui`, `definition.customTypes`, and `definition.selectQuickUi` are legacy and unsupported
 - coordinated modules should declare `modpack`, `id`, `name`, and `storage`
 - the current framework contract is one tab per module
 
